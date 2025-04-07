@@ -31,7 +31,7 @@ public class IO {
      * @return
      */
     public static ITable readTable(String tablename, ISchema schema, String folder) {
-
+        return null;
     }
 
     /**
@@ -109,6 +109,4 @@ public class IO {
     public static void readSchema(String schemaFileName, String folderName, Database db) {
 
     }
-
-
 }

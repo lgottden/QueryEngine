@@ -9,6 +9,7 @@ import java.util.Map;
  * Database is stored (on the disk) in the form of three csv files and schema text file
  */
 class Database {
+
     private List<ITable> tables;
     private List<ISchema> schemas;
     private String folderName;
@@ -46,7 +47,7 @@ class Database {
      * @return
      */
     public List<ITable> getTables() {
-
+        return null;
     }
 
     /**
@@ -54,7 +55,7 @@ class Database {
      * @return
      */
     public List<ISchema> getSchemas() {
-
+        return null;
     }
 
     /**
@@ -136,7 +137,7 @@ class Database {
      * @throws InvalidQueryException
      */
     public ITable selectData(String query) throws InvalidQueryException {
-
+        return null;
     }
 
     /**
