@@ -167,5 +167,4 @@ class Database {
     public void deleteData(String query) throws InvalidQueryException {
 
     }
-
 }
