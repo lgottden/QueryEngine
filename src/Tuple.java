@@ -7,6 +7,7 @@ import java.util.Map;
  *
  */
 public class Tuple implements ITuple {
+
     private Object[] values;
     private Map<Integer, Class<?>> typeMap;
 
@@ -14,52 +15,65 @@ public class Tuple implements ITuple {
      * The constructor receives a schema and creates the object array and typemap (representing the tuple)
      * The schema has the types of attributes stored as strings ("Integer", "Double", "String")
      * Based upon these types the constructor stores the actual class (Integer.class, Double.class, String.class) to the typemap
-     * @param schema
+     * @param schema the given schema.
      */
     public Tuple(ISchema schema) {
-
+        this.values = new Object[schema.getAttributes().size()];
+        this.typeMap = new HashMap<>();
+        for (int i = 0; i < this.values.length; i++) {
+            switch (schema.getType(i)) {
+                case "Integer":
+                    this.typeMap.put(i, Integer.class);
+                    break;
+                case "Double":
+                    this.typeMap.put(i, Double.class);
+                    break;
+                case "String":
+                    this.typeMap.put(i, String.class);
+            }
+        }
     }
 
     /**
      * Stores the value at the given index in the (tuple) object
-     * The value is converted from the object to to its actual class from the typemap
-     * @param index
-     * @param value
+     * The value is converted from the object to its actual class from the typemap
+     * @param index the given index in the tuple.
+     * @param value the given value.
      */
     @Override
-
     public void setValue(int index, Object value) {
-
+        this.values[index] = this.typeMap.get(index).cast(value);
     }
 
     /**
      * Returns the value at a given index from the tuple object
-     * @param index
-     * @return
-     * @param <T>
+     * @param index the given index in the tuple.
+     * @return the value at the given index.
+     * @param <T> the type of the returned value.
      */
     @Override
     @SuppressWarnings("unchecked")
     public <T> T getValue(int index) {
-
+        return (T) this.values[index];
     }
 
     /**
      * Returns the tuple as an array of Objects
-     * @return
+     * @return this tuple as an array of Objects.
      */
     @Override
     public Object[] getValues() {
-
+        return this.values;
     }
 
     /**
      * Sets the tuple values to the provided ones
      * The values are converted from objects to their actual classes from the typemap
-     * @param values
+     * @param values the given array of values.
      */
     @Override
     public void setValues(Object[] values) {
-
+        for (int i = 0; i < values.length; i++)
+            this.values[i] = this.typeMap.get(i).cast(values[i]);
     }
 }

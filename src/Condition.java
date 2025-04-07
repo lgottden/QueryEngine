@@ -2,6 +2,7 @@
  * A condition is of the form operand1 operator operand2, e.g. sid = s1
  */
 public class Condition {
+
     private String operand1;
     private String operand2;
     private String operator;
