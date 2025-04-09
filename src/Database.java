@@ -19,43 +19,46 @@ class Database {
      * Creates the empty tables and schema lists
      * Reads the schema file to add schemas to the database
      * Populates the database table (with the data read from the csv files)
-     * @param folderName
-     * @param schemaFileName
+     * @param folderName the name of the database folder.
+     * @param schemaFileName the name of the file containing the database schemas.
      */
     public Database(String folderName, String schemaFileName) {
-
+        this.tables = new ArrayList<>();
+        this.schemas = new ArrayList<>();
+        this.folderName = folderName;
+        // NOT FINISHED, STILL NEED FILE I/O
     }
 
     /**
      * Adds a table to the database
-     * @param table
+     * @param table the given table.
      */
     public void addTable(ITable table) {
-
+        this.tables.add(table);
     }
 
     /**
      * Adds a table schema to the database
-     * @param schema
+     * @param schema the given schema.
      */
     public void addSchema(ISchema schema) {
-
+        this.schemas.add(schema);
     }
 
     /**
      * Return the list of tables in the database
-     * @return
+     * @return the list of tables in this database.
      */
     public List<ITable> getTables() {
-        return null;
+        return this.tables;
     }
 
     /**
      * Returns the list of schemas in the database
-     * @return
+     * @return the list of schemas in this database.
      */
     public List<ISchema> getSchemas() {
-        return null;
+        return this.schemas;
     }
 
     /**
@@ -75,7 +78,7 @@ class Database {
      *
      * For each table in the db (tables are initially empty)
      *   Get the table's data from the csv file (by calling the read table method)
-     *   Update the table (by calling the udpate table method)
+     *   Update the table (by calling the update table method)
      */
     public void populateDB() {
 
