@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * A table has a name, a schema and a list of tuples
@@ -55,5 +56,30 @@ public class Table implements ITable {
     @Override
     public ISchema getSchema() {
         return this.schema;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Table))
+            return false;
+        else {
+            Table othTable = (Table) o;
+            return this.tuples.equals(othTable.tuples) &&
+                   this.schema.equals(othTable.schema) &&
+                   this.name.equals(othTable.name);
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.name, this.schema, this.tuples);
+    }
+
+    @Override
+    public String toString() {
+        String acc = this.name + "\n";
+        for (ITuple tup : this.tuples)
+            acc += tup.toString() + "\n";
+        return acc.substring(0, acc.length() - 1);
     }
 }

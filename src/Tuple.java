@@ -1,5 +1,7 @@
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * A tuple is an ordered collection of Objects and their associated types (Integer, Double or String)
@@ -42,7 +44,13 @@ public class Tuple implements ITuple {
      */
     @Override
     public void setValue(int index, Object value) {
-        this.values[index] = this.typeMap.get(index).cast(value);
+        Class<?> type = this.typeMap.get(index);
+        if (type.equals(Integer.class))
+            this.values[index] = Integer.parseInt((String) value);
+        else if (type.equals(Double.class))
+            this.values[index] = Double.parseDouble((String) value);
+        else
+            this.values[index] = value;
     }
 
     /**
@@ -75,5 +83,29 @@ public class Tuple implements ITuple {
     public void setValues(Object[] values) {
         for (int i = 0; i < values.length; i++)
             this.values[i] = this.typeMap.get(i).cast(values[i]);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Tuple))
+            return false;
+        else {
+            Tuple othTuple = (Tuple) o;
+            return Arrays.equals(this.values, othTuple.values) &&
+                   this.typeMap.equals(othTuple.typeMap);
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(Arrays.hashCode(this.values), this.typeMap);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder acc = new StringBuilder();
+        for (Object val : this.values)
+            acc.append(val).append(",");
+        return acc.substring(0, acc.length() - 1);
     }
 }

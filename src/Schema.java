@@ -1,5 +1,7 @@
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Scanner;
 
 /**
  * the schema is stored as a map of (index, name:type) pairs
@@ -46,5 +48,28 @@ public class Schema implements ISchema {
     public String getType(int index) {
         String val = this.attributes.get(index);
         return val.substring(val.indexOf(':') + 1);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Schema))
+            return false;
+        else {
+            Schema othSchema = (Schema) o;
+            return this.attributes.equals(othSchema.attributes);
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.attributes);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder acc = new StringBuilder();
+        for (String attribute : this.attributes.values())
+            acc.append(attribute).append(", ");
+        return acc.substring(0, acc.length() - 2);
     }
 }
