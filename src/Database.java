@@ -26,7 +26,10 @@ class Database {
         this.tables = new ArrayList<>();
         this.schemas = new ArrayList<>();
         this.folderName = folderName;
-        // NOT FINISHED, STILL NEED FILE I/O
+        IO.readSchema(schemaFileName, this.folderName, this);
+        for (ITable table : this.tables)
+            for (ITuple tuple : IO.readTable(table.getName(), table.getSchema(), this.folderName).getTuples())
+                table.addTuple(tuple);
     }
 
     /**

@@ -1,6 +1,7 @@
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -14,6 +15,7 @@ class MethodTests {
     Tuple tup4;
     ITable tab;
     ITable tab2;
+    Database db;
 
     @BeforeEach
     void initialize() {
@@ -24,6 +26,7 @@ class MethodTests {
         tup4 = new Tuple(s);
         tab = new Table("student", s);
         tab2 = IO.readTable("student", s, "db");
+        db = new Database("db", "schema");
     }
 
     // Condition tests omitted, as they are essentially trivial.
@@ -76,7 +79,21 @@ class MethodTests {
                 () -> tab2 = new Table("test", s),
                 () -> tab2.addTuple(tup),
                 () -> tab2.addTuple(tup4),
-                () -> IO.writeTable(tab2, "db")
+                () -> IO.writeTable(tab2, "db"),
+                () -> IO.printTable(tab, s),
+                () -> IO.writeTuple("test", tup2.getValues(), "db")
+        );
+    }
+
+    @Test
+    void testDatabase() {
+        assertAll(
+                () -> assertEquals(List.of(Map.of(0, "sid:String", 1, "sname:String", 2, "major:String", 3, "byear:Integer"),
+                                           Map.of(0, "cno:String", 1, "cname:String", 2, "dept:String"),
+                                           Map.of(0, "sid:String", 1, "cno:String", 2, "grade:String")),
+                        db.getSchemas().stream().map(ISchema::getAttributes).toList()),
+                () -> assertEquals(List.of("student", "course", "enroll"), db.getTables().stream().map(ITable::getName).toList()),
+                () -> db.getTables().forEach(table -> IO.printTable(table, table.getSchema()))
         );
     }
 }

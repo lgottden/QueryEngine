@@ -63,9 +63,7 @@ public class IO {
      */
     public static void writeTable(ITable table, String folder) {
         String fullPath = folder + "\\" + table.getName() + ".csv";
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(fullPath));
-             PrintWriter pw = new PrintWriter(fullPath)) {
-            pw.print("");
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(fullPath))) {
             for (ITuple tuple : table.getTuples())
                 bw.write(tuple.toString() + "\n");
         } catch (IOException ex) { throw new RuntimeException(ex); }
@@ -80,14 +78,19 @@ public class IO {
      * For each tuple in the table
      *   Print the values in tab separated format
      *
-     *
-     * @param table
-     * @param schema
+     * @param table the table to be printed to the console.
+     * @param schema the schema corresponding with the given table.
      */
     public static void printTable(ITable table, ISchema schema) {
-
+        for (int i = 0; i < schema.getAttributes().size(); i++)
+            System.out.print(i == schema.getAttributes().size() - 1 ? schema.getName(i) : schema.getName(i) + "\t");
+        System.out.print("\n");
+        for (ITuple tuple : table.getTuples()) {
+            for (int i = 0; i < tuple.getValues().length; i++)
+                System.out.print(i == tuple.getValues().length - 1 ? tuple.getValue(i) + "" : tuple.getValue(i) + "\t");
+            System.out.print("\n");
+        }
     }
-
 
     /**
      * Writes a tuple to a csv file
@@ -97,12 +100,17 @@ public class IO {
      * Open the csv file from the folder (corresponding to the tablename)
      * Append the tuple (as array of strings) in the csv format to the file
      *
-     * @param tableName
-     * @param values
-     * @param folder
+     * @param tableName the name of the table.
+     * @param values the array of Object values corresponding to the appropriate tuple.
+     * @param folder the name of the folder containing the csv file.
      */
     public static void writeTuple(String tableName, Object[] values, String folder) {
-
+        String fullPath = folder + "\\" + tableName + ".csv";
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(fullPath, true))) {
+            for (int i = 0; i < values.length; i++)
+                bw.write(i == values.length - 1 ? values[i] + "" : values[i] + ",");
+            bw.write("\n");
+        } catch (IOException ex) { throw new RuntimeException(ex); }
     }
 
     /**
@@ -122,11 +130,30 @@ public class IO {
      *   Create a new table object with the table name and the schema object
      *   Add the table to the database
      *
-     * @param schemaFileName
-     * @param folderName
-     * @param db
+     * @param schemaFileName the name of the schema file.
+     * @param folderName the name of the folder containing the schema file.
+     * @param db the database that the schema is added to.
      */
     public static void readSchema(String schemaFileName, String folderName, Database db) {
-
+        String fullPath = folderName + "\\" + schemaFileName + ".txt";
+        try (Scanner f = new Scanner(new File(fullPath))) {
+            while (f.hasNextLine()) {
+                String line = f.nextLine();
+                String tableName = line.substring(0, line.indexOf('('));
+                String attributes = line.substring(line.indexOf('(') + 1, line.indexOf(')'));
+                Map<Integer, String> map = new HashMap<>();
+                int i = 0;
+                while (attributes.contains(",")) {
+                    map.put(i, attributes.substring(0, attributes.indexOf(',')));
+                    attributes = attributes.substring(attributes.indexOf(',') + 2);
+                    i++;
+                }
+                map.put(i, attributes);
+                ISchema schema = new Schema(map);
+                db.addSchema(schema);
+                ITable table = new Table(tableName, schema);
+                db.addTable(table);
+            }
+        } catch (IOException ex) { throw new RuntimeException(ex); }
     }
 }
