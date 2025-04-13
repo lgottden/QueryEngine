@@ -27,9 +27,7 @@ class Database {
         this.schemas = new ArrayList<>();
         this.folderName = folderName;
         IO.readSchema(schemaFileName, this.folderName, this);
-        for (ITable table : this.tables)
-            for (ITuple tuple : IO.readTable(table.getName(), table.getSchema(), this.folderName).getTuples())
-                table.addTuple(tuple);
+        this.populateDB();
     }
 
     /**
@@ -68,10 +66,15 @@ class Database {
      * The list of tables in the database is initialized with empty tables in the constructor
      * An empty table has a name and an empty list of tuples
      * This method sets the empty table in the list to the one provided as a parameter
-     * @param table
+     * @param table the given table that the table in the list is set to.
      */
     public void updateTable(ITable table) {
-
+        for (ITable emptyTable : this.tables) {
+            if (emptyTable.getName().equals(table.getName())) {
+                for (ITuple tuple : table.getTuples())
+                    emptyTable.addTuple(tuple);
+            }
+        }
     }
 
     /**
@@ -84,7 +87,8 @@ class Database {
      *   Update the table (by calling the update table method)
      */
     public void populateDB() {
-
+        for (ITable table : this.tables)
+            updateTable(IO.readTable(table.getName(), table.getSchema(), this.folderName));
     }
 
     /**
@@ -102,8 +106,8 @@ class Database {
      * Open the file corresponding to the table name
      * Append the tuple values (as comma separated values) to the end of the file
      *
-     * @param query
-     * @throws InvalidQueryException
+     * @param query the given query.
+     * @throws InvalidQueryException the exception thrown when the given query is invalid.
      */
     public void insertData(String query) throws InvalidQueryException {
 
@@ -137,13 +141,30 @@ class Database {
      *     Add the results tuple to the result table
      * Return results table
      *
-     *
-     * @param query
-     * @return
-     * @throws InvalidQueryException
+     * @param query the given query.
+     * @return a results table containing the data requested by the given query.
+     * @throws InvalidQueryException the exception thrown when the given query is invalid.
      */
     public ITable selectData(String query) throws InvalidQueryException {
-        return null;
+        if (!(query.contains("SELECT") && query.contains("FROM") && query.contains("WHERE"))) {
+            throw new InvalidQueryException(query);
+            System.exit(0);
+        }
+
+        String select = query.substring(query.indexOf(' ') + 1, query.indexOf('\n'));
+        query = query.substring(query.indexOf('\n') + 1);
+        String from = query.substring(query.indexOf(' ') + 1, query.indexOf('\n'));
+        query = query.substring(query.indexOf('\n') + 1);
+        String where = query.substring(query.indexOf(' ') + 1);
+
+        String[] attributes = select.split(", ");
+        for (String attribute : attributes) {
+            if (!(this.getSchemas().stream().anyMatch(schema -> schema.toString().contains(attribute)))) {
+                throw new InvalidQueryException(query);
+                System.exit(0);
+            }
+        }
+        // NOT FINISHED
     }
 
     /**
