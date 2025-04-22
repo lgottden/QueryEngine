@@ -9,23 +9,31 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class MethodTests {
     Schema s;
+    Schema s2;
     Tuple tup;
     Tuple tup2;
     Tuple tup3;
     Tuple tup4;
+    Tuple tup5;
+    Tuple tup6;
     ITable tab;
     ITable tab2;
+    ITable tab3;
     Database db;
 
     @BeforeEach
     void initialize() {
         s = new Schema(Map.of(0, "sid:String", 1, "sname:String", 2, "major:String", 3, "byear:Integer"));
+        s2 = new Schema(Map.of(0, "sid:String", 1, "cno:String"));
         tup = new Tuple(s);
         tup2 = new Tuple(s);
         tup3 = new Tuple(s);
         tup4 = new Tuple(s);
+        tup5 = new Tuple(s2);
+        tup6 = new Tuple(s2);
         tab = new Table("student", s);
         tab2 = IO.readTable("student", s, "db");
+        tab3 = new Table("enroll", s2);
         db = new Database("db", "schema");
     }
 
@@ -93,7 +101,12 @@ class MethodTests {
                                            Map.of(0, "sid:String", 1, "cno:String", 2, "grade:String")),
                         db.getSchemas().stream().map(ISchema::getAttributes).toList()),
                 () -> assertEquals(List.of("student", "course", "enroll"), db.getTables().stream().map(ITable::getName).toList()),
-                () -> db.getTables().forEach(table -> IO.printTable(table, table.getSchema()))
+                () -> db.getTables().forEach(table -> IO.printTable(table, table.getSchema())),
+                () -> tup5.setValues(new Object[]{"s1", "c1"}),
+                () -> tup6.setValues(new Object[]{"s2", "c3"}),
+                () -> tab3.addTuple(tup5),
+                () -> tab3.addTuple(tup6),
+                () -> assertEquals(tab3, db.selectData("SELECT sid, cno\nFROM enroll\nWHERE grade = b"))
         );
     }
 }

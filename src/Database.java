@@ -1,7 +1,4 @@
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * The main database class
@@ -146,25 +143,105 @@ class Database {
      * @throws InvalidQueryException the exception thrown when the given query is invalid.
      */
     public ITable selectData(String query) throws InvalidQueryException {
-        if (!(query.contains("SELECT") && query.contains("FROM") && query.contains("WHERE"))) {
+        if (!(query.contains("SELECT") && query.contains("FROM")))
             throw new InvalidQueryException(query);
-            System.exit(0);
-        }
 
         String select = query.substring(query.indexOf(' ') + 1, query.indexOf('\n'));
         query = query.substring(query.indexOf('\n') + 1);
-        String from = query.substring(query.indexOf(' ') + 1, query.indexOf('\n'));
-        query = query.substring(query.indexOf('\n') + 1);
-        String where = query.substring(query.indexOf(' ') + 1);
+
+        String from;
+        String where = "";
+        boolean hasWhere = query.contains("WHERE");
+        if (hasWhere) {
+            from = query.substring(query.indexOf(' ') + 1, query.indexOf('\n'));
+            query = query.substring(query.indexOf('\n') + 1);
+            where = query.substring(query.indexOf(' ') + 1);
+        } else
+            from = query.substring(query.indexOf(' ') + 1);
 
         String[] attributes = select.split(", ");
         for (String attribute : attributes) {
-            if (!(this.getSchemas().stream().anyMatch(schema -> schema.toString().contains(attribute)))) {
+            if (this.schemas.stream().noneMatch(schema -> schema.toString().contains(attribute)))
                 throw new InvalidQueryException(query);
-                System.exit(0);
+        }
+
+        if (this.tables.stream().noneMatch(table -> table.getName().equals(from)))
+            throw new InvalidQueryException(query);
+
+        String whereAttribute;
+        String comparator = "";
+        String constant = "";
+        if (hasWhere) {
+            String[] pieces = where.split(" ");
+            whereAttribute = pieces[0];
+            comparator = pieces[1];
+            constant = pieces[2];
+            if (this.schemas.stream().noneMatch(schema -> schema.toString().contains(whereAttribute)))
+                throw new InvalidQueryException(query);
+        } else
+            whereAttribute = "";
+
+        Map<Integer, String> tempList = new HashMap<>();
+        for (ITable table : this.tables) {
+            if (table.getName().equals(from))
+                tempList = table.getSchema().getAttributes();
+        }
+        Map<Integer, String> resultList = new HashMap<>();
+        int i = 0;
+        for (String str : tempList.values()) {
+            if (Arrays.stream(attributes).anyMatch(str::contains)) {
+                resultList.put(i, str);
+                i++;
             }
         }
-        // NOT FINISHED
+        ISchema resultSchema = new Schema(resultList);
+
+        ITable originalTable = this.tables.stream()
+                                          .filter(table -> table.getName().equals(from))
+                                          .toList()
+                                          .getFirst();
+        ITable resultTable = new Table(from, resultSchema);
+        for (ITuple tuple : originalTable.getTuples()) {
+            if (hasWhere && originalTable.getSchema().getAttributes().values().stream().anyMatch(value -> value.contains(whereAttribute))) {
+                int index = 0;
+                for (Map.Entry<Integer, String> attribute : originalTable.getSchema().getAttributes().entrySet())
+                    if (attribute.getValue().contains(whereAttribute)) { index = attribute.getKey(); }
+                String tupleVal = tuple.getValue(index);
+                boolean passesComparator = true;
+                switch (comparator) {
+                    case "=":
+                        if (!tupleVal.equals(constant)) { passesComparator = false; }
+                        break;
+                    case "!=":
+                        if (tupleVal.equals(constant)) { passesComparator = false; }
+                        break;
+                    case ">":
+                        if (tupleVal.compareTo(constant) <= 0) { passesComparator = false; }
+                        break;
+                    case ">=":
+                        if (tupleVal.compareTo(constant) < 0) { passesComparator = false; }
+                        break;
+                    case "<":
+                        if (tupleVal.compareTo(constant) >= 0) { passesComparator = false; }
+                        break;
+                    case "<=":
+                        if (tupleVal.compareTo(constant) > 0) { passesComparator = false; }
+                }
+                if (!passesComparator) { continue; }
+            }
+            Object[] tupleArray = new Object[resultSchema.getAttributes().size()];
+            int arrIndex = 0;
+            for (int j = 0; j < tuple.getValues().length; j++) {
+                if (resultTable.getSchema().getAttributes().containsValue(originalTable.getSchema().getAttributes().get(j))) {
+                    tupleArray[arrIndex] = tuple.getValue(j);
+                    arrIndex++;
+                }
+            }
+            ITuple newTuple = new Tuple(resultSchema);
+            newTuple.setValues(tupleArray);
+            resultTable.addTuple(newTuple);
+        }
+        return resultTable;
     }
 
     /**
@@ -179,7 +256,7 @@ class Database {
      *   Throw an invalid query exception
      *   Exit
      * If where clause is not empty
-     *   Parse the where clause to get the the condition
+     *   Parse the where clause to get the condition
      *   For each tuple in the table
      *     If the where clause condition is true
      *       Remove the tuple from the table
