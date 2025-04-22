@@ -29,7 +29,7 @@ public class IO {
      */
     public static ITable readTable(String tablename, ISchema schema, String folder) {
         ITable table = new Table(tablename, schema);
-        String fullPath = folder + "\\" + tablename + ".csv";
+        String fullPath = folder + "/" + tablename + ".csv";
         try (BufferedReader br = new BufferedReader(new FileReader(fullPath))) {
             String line = br.readLine();
             while (line != null) {
@@ -62,7 +62,7 @@ public class IO {
      * @param folder the folder containing the table to be written.
      */
     public static void writeTable(ITable table, String folder) {
-        String fullPath = folder + "\\" + table.getName() + ".csv";
+        String fullPath = folder + "/" + table.getName() + ".csv";
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(fullPath))) {
             for (ITuple tuple : table.getTuples())
                 bw.write(tuple.toString() + "\n");
@@ -105,7 +105,7 @@ public class IO {
      * @param folder the name of the folder containing the csv file.
      */
     public static void writeTuple(String tableName, Object[] values, String folder) {
-        String fullPath = folder + "\\" + tableName + ".csv";
+        String fullPath = folder + "/" + tableName + ".csv";
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(fullPath, true))) {
             for (int i = 0; i < values.length; i++)
                 bw.write(i == values.length - 1 ? values[i] + "" : values[i] + ",");
@@ -135,7 +135,7 @@ public class IO {
      * @param db the database that the schema is added to.
      */
     public static void readSchema(String schemaFileName, String folderName, Database db) {
-        String fullPath = folderName + "\\" + schemaFileName + ".txt";
+        String fullPath = folderName + "/" + schemaFileName;
         try (Scanner f = new Scanner(new File(fullPath))) {
             while (f.hasNextLine()) {
                 String line = f.nextLine();

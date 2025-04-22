@@ -106,7 +106,8 @@ class MethodTests {
                 () -> tup6.setValues(new Object[]{"s2", "c3"}),
                 () -> tab3.addTuple(tup5),
                 () -> tab3.addTuple(tup6),
-                () -> assertEquals(tab3, db.selectData("SELECT sid, cno\nFROM enroll\nWHERE grade = b"))
+                () -> assertEquals(tab3, db.selectData("SELECT sid, cno\nFROM enroll\nWHERE grade = b")),
+                () -> db.insertData("INSERT INTO student (sid, sname, major, byear)\nVALUES (s5, Mary, CS, 2004)")
         );
     }
 }
