@@ -111,13 +111,12 @@ class Database {
         if (!(query.contains("INSERT INTO") && query.contains("VALUES")))
             throw new InvalidQueryException(query);
 
-        String[] insertPieces = query.substring(0, query.indexOf('\n')).split(" ");
-        String[] valuesPieces = query.substring(query.indexOf('\n') + 1).split(" ");
-        String tableName = insertPieces[2];
-
+        String tableName = query.substring(query.indexOf("INTO") + 5, query.indexOf('(') - 1).toLowerCase();
         String attributesString = query.substring(query.indexOf('('), query.indexOf(')') + 1);
-        String tempQuery = query.substring(query.indexOf('\n') + 1);
-        String valuesString = tempQuery.substring(tempQuery.indexOf('('), tempQuery.indexOf(')') + 1);
+        query = query.substring(query.indexOf("VALUES"));
+        String valuesString = query.substring(query.indexOf('('), query.indexOf(')') + 1);
+        while (valuesString.contains("'"))
+            valuesString = valuesString.replace("'", "");
 
         String[] attributes = attributesString.substring(1, attributesString.length() - 1).split(", ");
         String[] values = valuesString.substring(1, valuesString.length() - 1).split(", ");
@@ -192,18 +191,18 @@ class Database {
         if (!(query.contains("SELECT") && query.contains("FROM")))
             throw new InvalidQueryException(query);
 
-        String select = query.substring(query.indexOf(' ') + 1, query.indexOf('\n'));
-        query = query.substring(query.indexOf('\n') + 1);
+        String select = query.substring(query.indexOf(' ') + 1, query.indexOf("FROM") - 1);
+        query = query.substring(query.indexOf("FROM"));
 
         String from;
         String where = "";
         boolean hasWhere = query.contains("WHERE");
         if (hasWhere) {
-            from = query.substring(query.indexOf(' ') + 1, query.indexOf('\n'));
-            query = query.substring(query.indexOf('\n') + 1);
+            from = query.substring(query.indexOf(' ') + 1, query.indexOf("WHERE") - 1).toLowerCase();
+            query = query.substring(query.indexOf("WHERE"));
             where = query.substring(query.indexOf(' ') + 1);
         } else
-            from = query.substring(query.indexOf(' ') + 1);
+            from = query.substring(query.indexOf(' ') + 1).toLowerCase();
 
         String[] attributes = select.split(", ");
         for (String attribute : attributes) {
@@ -220,6 +219,8 @@ class Database {
             condition.setOperand1(pieces[0]);
             condition.setOperator(pieces[1]);
             condition.setOperand2(pieces[2]);
+            while (condition.getOperand2().contains("'"))
+                condition.setOperand2(condition.getOperand2().replace("'", ""));
             if (this.schemas.stream().noneMatch(schema -> schema.toString().contains(condition.getOperand1())))
                 throw new InvalidQueryException(query);
         }
