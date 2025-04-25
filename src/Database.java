@@ -134,7 +134,7 @@ class Database {
                 newTuple = new Tuple(originalTable.getSchema());
             }
         }
-        if (originalTable == null || newTuple == null) { throw new InvalidQueryException(query); }
+        if (originalTable == null) { throw new InvalidQueryException(query); }
 
         List<Object> typeCastedValues = new ArrayList<>();
         int index = 0;
