@@ -37,8 +37,6 @@ class MethodTests {
         db = new Database("db", "schema.txt");
     }
 
-    // Condition tests omitted, as they are essentially trivial.
-
     @Test
     void testSchema() {
         assertAll(
@@ -101,13 +99,15 @@ class MethodTests {
                                            Map.of(0, "sid:String", 1, "cno:String", 2, "grade:String")),
                         db.getSchemas().stream().map(ISchema::getAttributes).toList()),
                 () -> assertEquals(List.of("student", "course", "enroll"), db.getTables().stream().map(ITable::getName).toList()),
-                () -> db.getTables().forEach(table -> IO.printTable(table, table.getSchema())),
+                // () -> db.getTables().forEach(table -> IO.printTable(table, table.getSchema())),
                 () -> tup5.setValues(new Object[]{"s1", "c1"}),
                 () -> tup6.setValues(new Object[]{"s2", "c3"}),
                 () -> tab3.addTuple(tup5),
                 () -> tab3.addTuple(tup6),
                 // () -> assertEquals(tab3, db.selectData("SELECT sid, cno FROM enroll WHERE grade = 'B'"))
-                () -> db.insertData("INSERT INTO Student (sid, sname, major, byear) VALUES ('s5', 'Mary', 'CS', 2004)")
+                () -> IO.printTable(db.selectData("SELECT sname FROM Student WHERE byear < 2000"), s)
+                // () -> db.insertData("INSERT INTO Student (sid, sname, major, byear) VALUES ('s5', 'Mary', 'CS', 2004)")
+                // () -> db.deleteData("DELETE FROM Student WHERE id = 's4'")
         );
     }
 }

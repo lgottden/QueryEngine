@@ -250,7 +250,13 @@ class Database {
                 int index = 0;
                 for (Map.Entry<Integer, String> attribute : originalTable.getSchema().getAttributes().entrySet())
                     if (attribute.getValue().contains(condition.getOperand1())) { index = attribute.getKey(); }
-                String tupleVal = tuple.getValue(index);
+
+                String tupleVal = "";
+                if (originalTable.getSchema().getType(index).equals("String"))
+                    tupleVal = tuple.getValue(index);
+                else
+                    tupleVal = Integer.toString(tuple.getValue(index));
+
                 boolean passesComparator = true;
                 switch (condition.getOperator()) {
                     case "=":
@@ -309,10 +315,83 @@ class Database {
      *     Remove the tuple from the table
      * Write the table to the file
      *
-     * @param query
-     * @throws InvalidQueryException
+     * @param query the given query.
+     * @throws InvalidQueryException the exception thrown when the given query is invalid.
      */
     public void deleteData(String query) throws InvalidQueryException {
+        if (!(query.contains("DELETE FROM")))
+            throw new InvalidQueryException(query);
 
+        boolean hasWhere = false;
+        if (query.contains("WHERE")) { hasWhere = true; }
+
+        String from = "";
+        String where = "";
+        if (hasWhere) {
+            from = query.substring(0, query.indexOf("WHERE") - 1);
+            where = query.substring(query.indexOf("WHERE"));
+        } else
+            from = query;
+
+        String tableName = from.split(" ")[2].toLowerCase();
+        if (this.tables.stream().noneMatch(table -> table.getName().equals(tableName)))
+            throw new InvalidQueryException(query);
+
+        ITable originalTable = this.tables.stream()
+                .filter(table -> table.getName().equals(tableName))
+                .toList()
+                .getFirst();
+        ITable newTable = new Table(tableName, originalTable.getSchema());
+
+        if (hasWhere) {
+            String[] pieces = where.split(" ");
+            Condition condition = new Condition("", "", "");
+            condition.setOperand1(pieces[1]);
+            condition.setOperator(pieces[2]);
+            condition.setOperand2(pieces[3]);
+            while (condition.getOperand2().contains("'"))
+                condition.setOperand2(condition.getOperand2().replace("'", ""));
+            if (this.schemas.stream().noneMatch(schema -> schema.toString().contains(condition.getOperand1())))
+                throw new InvalidQueryException(query);
+
+            for (ITuple tuple : originalTable.getTuples()) {
+                int index = 0;
+                for (Map.Entry<Integer, String> attribute : originalTable.getSchema().getAttributes().entrySet())
+                    if (attribute.getValue().contains(condition.getOperand1())) { index = attribute.getKey(); }
+
+                String tupleVal = "";
+                if (originalTable.getSchema().getType(index).equals("String"))
+                    tupleVal = tuple.getValue(index);
+                else
+                    tupleVal = Integer.toString(tuple.getValue(index));
+
+                switch (condition.getOperator()) {
+                    case "=":
+                        if (!tupleVal.equals(condition.getOperand2()))
+                            newTable.addTuple(tuple);
+                        break;
+                    case "!=":
+                        if (tupleVal.equals(condition.getOperand2()))
+                            newTable.addTuple(tuple);
+                        break;
+                    case ">":
+                        if (tupleVal.compareTo(condition.getOperand2()) <= 0)
+                            newTable.addTuple(tuple);
+                        break;
+                    case ">=":
+                        if (tupleVal.compareTo(condition.getOperand2()) < 0)
+                            newTable.addTuple(tuple);
+                        break;
+                    case "<":
+                        if (tupleVal.compareTo(condition.getOperand2()) >= 0)
+                            newTable.addTuple(tuple);
+                        break;
+                    case "<=":
+                        if (tupleVal.compareTo(condition.getOperand2()) > 0)
+                            newTable.addTuple(tuple);
+                }
+            }
+        }
+        IO.writeTable(newTable, this.folderName);
     }
 }

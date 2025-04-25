@@ -1,9 +1,17 @@
+import org.w3c.dom.ls.LSOutput;
+
 import java.util.Objects;
+import java.util.Scanner;
 
 public class Main {
 
     public static void main(String[] args) {
-
+        Database db = new Database("db", "schema.txt");
+        Scanner in = new Scanner(System.in);
+        System.out.print("Query: ");
+        String query = in.nextLine();
+        in.close();
+        runQuery(query, db);
     }
 
     /**
